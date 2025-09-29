@@ -5,6 +5,8 @@ import com.coffee.repository.CartProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class CartProductService {
@@ -12,5 +14,9 @@ public class CartProductService {
 
     public void saveCartProduct(CartProduct cp) {
         this.cartProductRepository.save(cp);
+    }
+
+    public Optional<CartProduct> findCartProductById(Long cartProductId) {
+        return cartProductRepository.findById(cartProductId);
     }
 }

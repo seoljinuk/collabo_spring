@@ -98,7 +98,13 @@ from ((members m join carts c
 on m.member_id = c.member_id) join cart_products cp
 on c.cart_id = cp.cart_id) join products p
 on cp.product_id = p.product_id ;
+
+
+delete from cart_Products;
+delete from cart;
+commit;
 ----------------------------------------
+
 
 
 

@@ -1,6 +1,7 @@
 package com.coffee.controller;
 
 import com.coffee.dto.CartProductDto;
+import com.coffee.dto.CartProductResponseDto;
 import com.coffee.entity.Cart;
 import com.coffee.entity.CartProduct;
 import com.coffee.entity.Member;
@@ -11,11 +12,10 @@ import com.coffee.service.MemberService;
 import com.coffee.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /*
@@ -68,15 +68,85 @@ public class CartController {
             cart = cartService.saveCart(newCart); // 데이터 베이스에 저장
         }
 
-        // 선택한 상품을 '카트 상품'에 담기
-        CartProduct cp = new CartProduct();
-        cp.setCart(cart);
-        cp.setProduct(product);
-        cp.setQuantity(dto.getQuantity());
-        cartProductService.saveCartProduct(cp);
+        // 기존에 같은 상품이 있는지 확인
+        CartProduct existingCartProduct = null;
+        for (CartProduct cp : cart.getCartProducts()) {
+            if (cp.getProduct().getId().equals(product.getId())) {
+                existingCartProduct = cp;
+                break;
+            }
+        }
+
+        if (existingCartProduct != null) {
+            // 기존 상품이면 수량 누적
+            existingCartProduct.setQuantity(existingCartProduct.getQuantity() + dto.getQuantity());
+            cartProductService.saveCartProduct(existingCartProduct);
+        } else {
+            // 새로운 상품이면 새로 추가
+            CartProduct cp = new CartProduct();
+            cp.setCart(cart);
+            cp.setProduct(product);
+            cp.setQuantity(dto.getQuantity());
+            cartProductService.saveCartProduct(cp);
+        }
 
         // 재고 수량은 차감하지 않습니다.
 
         return ResponseEntity.ok("요청하신 상품이 장바구니에 추가되었습니다.") ;
+    }
+
+    @GetMapping("/list/{memberId}") // 특정 사용자의 `카트 상품` 목록을 조회합니다.
+    public ResponseEntity<List<CartProductResponseDto>> getCartProducts(@PathVariable Long memberId){
+        Optional<Member> optionalMember = this.memberService.findMemberById(memberId);
+        if(optionalMember.isEmpty()){ // 무효한 회원 정보
+            return ResponseEntity.badRequest().build();
+        }
+
+        Member member = optionalMember.get() ;
+        Cart cart = cartService.findByMember(member);
+
+        if(cart == null){cart = new Cart() ; }
+
+        // cartProducts : 과거에 내가 Cart에 담아 두었던 목록을 의미하는 컬렉션
+        List<CartProductResponseDto> cartProducts = new ArrayList<>();
+
+        for(CartProduct cp : cart.getCartProducts()){
+            cartProducts.add(new CartProductResponseDto(cp));
+        }
+
+        System.out.println("카트 상품 개수 : " + cartProducts.size());
+
+        return ResponseEntity.ok(cartProducts) ; // 전체 `카트 상품` 반환
+    }
+
+    // http://localhost:9000/cart/edit/100?quantity=10
+    @PatchMapping("/edit/{cartProductId}")
+    public ResponseEntity<String> updateCartProduct(
+            @PathVariable Long cartProductId,
+            @RequestParam(required = false) Integer quantity){
+        System.out.println("카트 상품 아이디 : " + cartProductId);
+        System.out.println("변경할 갯수 : " + quantity);
+
+        String message = null ;
+
+        if(quantity == null){
+            message = "장바구니 품목은 최소 1개 이상이어야 합니다." ;
+            return ResponseEntity.badRequest().body(message);
+        }
+
+        Optional<CartProduct> cartProductOptional = this.cartProductService.findCartProductById(cartProductId);
+        if(cartProductOptional.isEmpty()){
+            message = "장바구니 품목을 찾을 수 없습니다." ;
+            return ResponseEntity.badRequest().body(message);
+        }
+
+        CartProduct cartProduct = cartProductOptional.get() ;
+        cartProduct.setQuantity(quantity); // 기존 내용 덮어쓰기
+        // cartProduct.setQuantity(cartProduct.getQuantity() + quantity); // 기존 내용에 누적
+
+        cartProductService.saveCartProduct(cartProduct); // 데이터 베이스에 저장
+
+        message = "카트 상품 아이디 " + cartProductId + "번이 `" + quantity + "개`로 수정이 되었습니다.";
+        return ResponseEntity.ok(message) ;
     }
 }
