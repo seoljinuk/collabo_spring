@@ -112,10 +112,17 @@ select * from orders ;
 desc order_products ;
 
 select * from order_products ;
-----------------------------------------
+--------------------------------------------------------------------------------------
+-- 누가 무슨 상품을 주문했나요?
 
+select m.member_id, m.name, o.order_id, op.product_id, op.quantity, p.name, p.price 
+from ((members m join orders o 
+on m.member_id = o.member_id) join order_products op
+on o.order_id = op.order_id) join products p
+on op.product_id = p.product_id ;
+--------------------------------------------------------------------------------------
 
-
+select * from products where image like '%bigs%';
 
 
 

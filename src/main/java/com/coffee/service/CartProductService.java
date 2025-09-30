@@ -20,7 +20,7 @@ public class CartProductService {
         return cartProductRepository.findById(cartProductId);
     }
 
-    public void delete(Long cartProductId) {
+    public void deleteCartProductById(Long cartProductId) {
         cartProductRepository.deleteById(cartProductId);
     }
 }
