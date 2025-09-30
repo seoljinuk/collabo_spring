@@ -71,8 +71,6 @@ commit ;
 desc carts ;
 
 select * from carts ;
-
-
 -----------------------------------------------------------------
 -- 카트 상품 세션
 ----------------------------------------------------------------- 
@@ -99,10 +97,21 @@ on m.member_id = c.member_id) join cart_products cp
 on c.cart_id = cp.cart_id) join products p
 on cp.product_id = p.product_id ;
 
-
 delete from cart_Products;
 delete from cart;
 commit;
+-----------------------------------------------------------------
+-- 주문 세션
+----------------------------------------------------------------- 
+desc orders ;
+
+select * from orders ;
+-----------------------------------------------------------------
+-- 주문 상품 세션
+----------------------------------------------------------------- 
+desc order_products ;
+
+select * from order_products ;
 ----------------------------------------
 
 

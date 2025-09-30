@@ -71,18 +71,18 @@ public class CartController {
         // 기존에 같은 상품이 있는지 확인
         CartProduct existingCartProduct = null;
         for (CartProduct cp : cart.getCartProducts()) {
+            // 주의) Long 타입은 참조 자료형이르로 == 대신 equals() 메소드를 사용해야 합니다.
             if (cp.getProduct().getId().equals(product.getId())) {
                 existingCartProduct = cp;
                 break;
             }
         }
 
-        if (existingCartProduct != null) {
-            // 기존 상품이면 수량 누적
+        if (existingCartProduct != null) { // 기존 상품이면 수량 누적
             existingCartProduct.setQuantity(existingCartProduct.getQuantity() + dto.getQuantity());
             cartProductService.saveCartProduct(existingCartProduct);
-        } else {
-            // 새로운 상품이면 새로 추가
+
+        } else { // 새로운 상품이면 새로 추가
             CartProduct cp = new CartProduct();
             cp.setCart(cart);
             cp.setProduct(product);
@@ -147,6 +147,16 @@ public class CartController {
         cartProductService.saveCartProduct(cartProduct); // 데이터 베이스에 저장
 
         message = "카트 상품 아이디 " + cartProductId + "번이 `" + quantity + "개`로 수정이 되었습니다.";
+        return ResponseEntity.ok(message) ;
+    }
+
+    @DeleteMapping("/delete/{cartProductId}")
+    public ResponseEntity<String> deleteCartProduct(@PathVariable Long cartProductId){
+        System.out.println("삭제할 카트 상품 아이디 : " + cartProductId);
+
+        cartProductService.delete(cartProductId);
+
+        String message = "카트 상품 " + cartProductId + "번이 장바구니 목록에서 삭제 되었습니다.";
         return ResponseEntity.ok(message) ;
     }
 }
