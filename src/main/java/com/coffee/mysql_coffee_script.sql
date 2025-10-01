@@ -61,7 +61,7 @@ select * from products ;
 select * from products order by product_id desc ; 
 
 -- 특정 상품 조회하기
-select * from products where product_id = 62 ; 
+select * from products where product_id = 266 ; 
 
 delete from products ;
 commit ;
@@ -113,14 +113,28 @@ desc order_products ;
 
 select * from order_products ;
 --------------------------------------------------------------------------------------
+-- 카트 내역 데이터 지우기
+delete from cart_products ;
+delete from carts ;
+commit ;
+--------------------------------------------------------------------------------------
+-- 주문 내역 데이터 지우기
+delete from order_products ;
+delete from orders ;
+commit;
+--------------------------------------------------------------------------------------
 -- 누가 무슨 상품을 주문했나요?
 
 select m.member_id, m.name, o.order_id, op.product_id, op.quantity, p.name, p.price 
 from ((members m join orders o 
 on m.member_id = o.member_id) join order_products op
 on o.order_id = op.order_id) join products p
-on op.product_id = p.product_id ;
+on op.product_id = p.product_id 
+order by order_id desc, product_id asc ;
 --------------------------------------------------------------------------------------
+
+
+
 
 select * from products where image like '%bigs%';
 

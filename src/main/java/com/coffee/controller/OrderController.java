@@ -1,7 +1,9 @@
 package com.coffee.controller;
 
+import com.coffee.constant.Role;
 import com.coffee.dto.OrderDto;
 import com.coffee.dto.OrderItemDto;
+import com.coffee.dto.OrderResponseDto;
 import com.coffee.entity.Member;
 import com.coffee.entity.Order;
 import com.coffee.entity.OrderProduct;
@@ -12,10 +14,7 @@ import com.coffee.service.OrderService;
 import com.coffee.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -97,5 +96,57 @@ public class OrderController {
 
         String message = "주문이 완료 되었습니다.";
         return ResponseEntity.ok(message) ;
+    }
+
+    // 특정한 회원의 주문 정보를 최신 날짜 순으로 조회합니다.
+    // http://localhost:9000/order/list?memberId=회원아이디
+    @GetMapping("/list") // 리액트의 OrderList.js 파일 내의 useEffect 참조
+    public ResponseEntity<List<OrderResponseDto>> getOrderList(@RequestParam Long memberId, @RequestParam Role role){
+        System.out.println("로그인 한 사람의 id : " + memberId );
+        System.out.println("로그인 한 사람 역할 : " + role);
+
+        List<Order> orders = null ;
+
+        if(role == Role.ADMIN){ // 관리자이면 모든 주문 내역을 조회하기
+            //System.out.println("관리자");
+            orders = orderService.findAllOrders() ;
+
+        }else{ // 일반인인 경우에는 자기 주문 정보만 조회하기
+            //System.out.println("일반인");
+            orders = orderService.findByMemberId(memberId);
+        }
+
+        System.out.println("주문 건수 : " + orders.size());
+
+        List<OrderResponseDto> responseDtos = new ArrayList<>();
+
+        for(Order bean:orders){
+            OrderResponseDto dto = new OrderResponseDto();
+            // 주문의 기초 정보 셋팅
+            dto.setOrderId(bean.getId());
+            dto.setOrderDate(bean.getOrderdate());
+            dto.setStatus(bean.getStatus().name());
+
+            // `주문 상품` 여러개에 대한 셋팅
+            List<OrderResponseDto.OrderItem> orderItems = new ArrayList<>();
+
+            for(OrderProduct op : bean.getOrderProducts() ){
+                OrderResponseDto.OrderItem item
+                        = new OrderResponseDto.OrderItem(op.getProduct().getName(), op.getQuantity());
+
+                orderItems.add(item);
+            }
+            dto.setOrderItems(orderItems);
+
+            responseDtos.add(dto);
+        }
+
+        return ResponseEntity.ok(responseDtos) ;
+    }
+
+    @GetMapping("/update/{orderId}")
+    public String ddd(@PathVariable Long orderId){
+        System.out.println("수정할 항목 : " + orderId);
+        return null ;
     }
 }
