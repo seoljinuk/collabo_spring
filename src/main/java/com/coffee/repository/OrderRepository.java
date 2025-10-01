@@ -12,4 +12,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     // 주문 번호(id) 기준으로 모든 주문 내역을 역순(내림차순) 으로 조회하려면 JPA 메서드를 이렇게 작성하시면 됩니다.
     List<Order> findAllByOrderByIdDesc(); // 이건 관리자가 사용합니다.
+
+//    // 특정 회원의 주문 중 상태가 PENDING인 것만, 주문 번호 내림차순
+//    List<Order> findByMemberIdAndStatusOrderByIdDesc(Long memberId, OrderStatus status);
+//
+//    // 관리자가 모든 주문 중 상태가 PENDING인 것만, 주문 번호 내림차순
+//    List<Order> findByStatusOrderByIdDesc(OrderStatus status);
 }
