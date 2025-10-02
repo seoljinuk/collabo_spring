@@ -18,12 +18,12 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public List<Order> findByMemberId(Long memberId) {
-        return orderRepository.findByMemberIdOrderByIdDesc(memberId);
+    public List<Order> findByMemberId(Long memberId, OrderStatus status) {
+        return orderRepository.findByMemberIdAndStatusOrderByIdDesc(memberId, status);
     }
 
-    public List<Order> findAllOrders() {
-        return orderRepository.findAllByOrderByIdDesc() ;
+    public List<Order> findAllOrders(OrderStatus status) {
+        return orderRepository.findByStatusOrderByIdDesc(status) ;
     }
 
     public int updateOrderStatus(Long orderId, OrderStatus status) {
