@@ -106,6 +106,8 @@ commit;
 desc orders ;
 
 select * from orders ;
+
+select * from orders where order_id = 3 ;
 -----------------------------------------------------------------
 -- 주문 상품 세션
 ----------------------------------------------------------------- 
@@ -132,7 +134,27 @@ on o.order_id = op.order_id) join products p
 on op.product_id = p.product_id 
 order by order_id desc, product_id asc ;
 --------------------------------------------------------------------------------------
+-- 주문 상태 `삭제` 테스트
+--------------------------------------------------------------------------------------
+-- (1) 주문 번호 4번이라고 가정
+select * from orders where order_id = 4 ;
 
+-- (2) 주문 상품 조회해서 product_id와 quantity 컬럼 확인
+select product_id, quantity from order_products where order_id = 4 ;
+-- 63	7
+-- 62	5
+-- 61	3
+
+-- (3) 상품들의 재고 수량 파악
+select product_id, stock from products where product_id in(61, 62, 63);
+-- 61	768
+-- 62	101
+-- 63	433
+	
+-- (4) 화면에서 해당 상품 '취소'하기
+
+-- (5) (1), (2), (3) 다시 실행
+--------------------------------------------------------------------------------------
 
 
 

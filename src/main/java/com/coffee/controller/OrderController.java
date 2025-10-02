@@ -1,5 +1,6 @@
 package com.coffee.controller;
 
+import com.coffee.constant.OrderStatus;
 import com.coffee.constant.Role;
 import com.coffee.dto.OrderDto;
 import com.coffee.dto.OrderItemDto;
@@ -148,5 +149,50 @@ public class OrderController {
     public String ddd(@PathVariable Long orderId){
         System.out.println("수정할 항목 : " + orderId);
         return null ;
+    }
+
+    @PutMapping("/update/status/{orderId}")
+    public ResponseEntity<String> statusChange(@PathVariable Long orderId, @RequestParam OrderStatus status){
+        System.out.println("수정할 항목의 아이디 : " + orderId);
+        System.out.println("변경하고자 하는 주문 상태 : " + status);
+
+        int affected = -1 ; //
+        affected = orderService.updateOrderStatus(orderId, status) ;
+        System.out.println("데이터 베이스에 반영이 된 행 개수 : " + affected);
+
+        String message = "송장 번호 " + orderId + "의 주문 상태가 변경이 되었습니다.";
+        return ResponseEntity.ok(message);
+    }
+
+    // `관리자` 또는 `당사자`가 주문에 대한 삭제 요청을 하였습니다.
+    @DeleteMapping("/delete/{orderId}")
+    public ResponseEntity<String> cancelOrder(@PathVariable Long orderId){
+        if(!orderService.existsById(orderId)){
+            return ResponseEntity.notFound().build();
+        }
+
+        // 여기서부터 재고 수량 증가를 위한 코드입니다.
+        Optional<Order> orderOptional = orderService.findOrderById(orderId) ;
+        if(orderOptional.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        Order order = orderOptional.get() ;
+
+        // `주문 상품`을 반복하면서 재고 수량을 더해 줍니다.
+        for(OrderProduct op : order.getOrderProducts()){
+            Product product = op.getProduct() ;
+            int quantity = op.getQuantity() ;
+
+            // 기존 재고에 주문 취소된 수량을 다시 더해 줍니다.
+            product.setStock(product.getStock() + quantity);
+
+            productService.save(product); // 데이터 베이스에 수정함
+        }
+
+        orderService.deleteById(orderId);
+
+        String message = "주문이 취소 되었습니다.";
+        return ResponseEntity.ok(message);
     }
 }

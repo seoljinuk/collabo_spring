@@ -70,11 +70,14 @@ public class CartController {
 
         // 기존에 같은 상품이 있는지 확인
         CartProduct existingCartProduct = null;
-        for (CartProduct cp : cart.getCartProducts()) {
-            // 주의) Long 타입은 참조 자료형이르로 == 대신 equals() 메소드를 사용해야 합니다.
-            if (cp.getProduct().getId().equals(product.getId())) {
-                existingCartProduct = cp;
-                break;
+
+        if(cart.getCartProducts() != null) { // 최초로 장바구니에 담을 때 null이 됩니다.
+            for (CartProduct cp : cart.getCartProducts()) {
+                // 주의) Long 타입은 참조 자료형이르로 == 대신 equals() 메소드를 사용해야 합니다.
+                if (cp.getProduct().getId().equals(product.getId())) {
+                    existingCartProduct = cp;
+                    break;
+                }
             }
         }
 

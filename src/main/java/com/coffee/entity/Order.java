@@ -4,11 +4,12 @@ import com.coffee.constant.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Getter @Setter
+@Getter @Setter @ToString
 @Entity
 @Table(name = "orders") // 주의) order은 데이터 베이스 전용 키워드입니다.
 public class Order { // 주문과 관련된 Entity입니다.
@@ -30,5 +31,6 @@ public class Order { // 주문과 관련된 Entity입니다.
 
     private LocalDate orderdate ; // 주문 날짜
 
+    @Enumerated(EnumType.STRING)
     private OrderStatus status ; // 주문 상태
 }
