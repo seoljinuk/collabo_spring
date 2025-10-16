@@ -1,6 +1,7 @@
 package com.coffee.entity;
 
 import com.coffee.constant.Role;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.* ;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -26,7 +27,8 @@ public class Member {
     private String name;
 
     // 필수 사항이고, 절대로 동일한 값이 들어오면 않됩니다.
-    @Column(unique = true, nullable = false)
+    @Column(unique
+            = true, nullable = false)
     @NotBlank(message = "이메일은 필수 입력 사항입니다.")
     @Email(message = "올바른 이메일 형식으로 입력해 주셔야 합니다.")
     private String email;
@@ -45,5 +47,6 @@ public class Member {
     @Enumerated(EnumType.STRING) // 컬럼에 문자열 형식으로 데이터가 들어 감.
     private Role role; // 일반인 또는 관리자
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate regdate ; // 등록 일자
 }
