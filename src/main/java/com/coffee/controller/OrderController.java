@@ -1,5 +1,6 @@
 package com.coffee.controller;
 
+import com.coffee.constant.OrderStatus;
 import com.coffee.constant.Role;
 import com.coffee.dto.OrderDetailDto;
 import com.coffee.dto.OrderDto;
@@ -40,5 +41,31 @@ public class OrderController {
 
         System.out.println("주문 건수 : " + responseDtos.size());
         return ResponseEntity.ok(responseDtos);
+    }
+
+    // 관리자가 수행하는 주문된 상품에 대한 `완료` 처리 기능
+    @PutMapping("/update/status/{orderId}")
+    public ResponseEntity<String> statusChange(@PathVariable Long orderId, @RequestParam OrderStatus status){
+        System.out.println("수정할 항목의 아이디 : " + orderId);
+        System.out.println("변경하고자 하는 주문 상태 : " + status);
+
+        // 서비스 로직에서 모든 처리를 맡김
+        String message = orderService.updateOrderStatus(orderId, status);
+
+        return ResponseEntity.ok(message);
+    }
+
+    // `관리자` 또는 `당사자`가 주문에 대한 삭제 요청을 하였습니다.
+    // 주문된 상품에 대한 `취소` 기능
+    @DeleteMapping("/delete/{orderId}")
+    public ResponseEntity<String> cancelOrder(@PathVariable Long orderId) {
+
+        try {
+            // 서비스에 모든 비즈니스 로직을 위임
+            String message = orderService.cancelOrder(orderId);
+            return ResponseEntity.ok(message);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

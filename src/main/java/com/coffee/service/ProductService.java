@@ -133,4 +133,8 @@ public class ProductService {
     public Optional<Product> findProductById(Long productId) {
         return productRepository.findById(productId);
     }
+
+    public void save(Product product) {
+        productRepository.save(product);
+    }
 }

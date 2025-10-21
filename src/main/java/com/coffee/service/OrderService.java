@@ -12,6 +12,7 @@ import com.coffee.entity.Product;
 import com.coffee.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -131,5 +132,60 @@ public class OrderService {
         }
 
         return responseDtos;
+    }
+
+    // 관리자가 수행하는 주문된 상품에 대한 `완료` 처리 기능
+    @Transactional
+    public String updateOrderStatus(Long orderId, OrderStatus newStatus) {
+
+        // 1. 주문 존재 여부 확인
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 주문이 존재하지 않습니다. 주문 ID: " + orderId));
+
+        // 2. 상태 변경 가능 여부 검증 (예: 취소된 주문은 다시 변경 불가)
+        if (order.getStatus() == OrderStatus.CANCELED) {
+            throw new IllegalStateException("취소된 주문은 상태를 변경할 수 없습니다.");
+        }
+
+        // 3. 상태 변경
+        order.setStatus(newStatus);
+
+        // 4. DB에 반영 (Dirty Checking)
+        // JPA에서는 save() 없이도 변경 사항이 자동 반영됨.
+        // 단, Modifying 쿼리를 쓰고 싶다면 Repository 메서드 호출 가능.
+        // orderRepository.updateOrderStatus(orderId, newStatus);
+
+        // 5. 사용자에게 전달할 메시지 생성
+        return "송장 번호 " + orderId + "의 주문 상태가 " + newStatus + "(으)로 변경되었습니다.";
+    }
+
+    // 주문된 상품에 대한 `취소` 기능
+    @Transactional
+    public String cancelOrder(Long orderId) {
+        // 1. 주문 존재 여부 확인
+        Optional<Order> orderOptional = orderRepository.findById(orderId);
+        if (orderOptional.isEmpty()) {
+            throw new IllegalArgumentException("해당 주문이 존재하지 않습니다. ID: " + orderId);
+        }
+
+        Order order = orderOptional.get();
+
+        // 2. `주문 상품`을 반복하면서 재고 수량을 더해 줍니다.(수량 복원)
+        for (OrderProduct op : order.getOrderProducts()) {
+            Product product = op.getProduct();
+            int quantity = op.getQuantity();
+
+            // 기존 재고 + 취소된 수량
+            product.setStock(product.getStock() + quantity);
+
+            // 재고 수량 반영
+            productService.save(product);
+        }
+
+        // 3. 주문 삭제
+        orderRepository.deleteById(orderId);
+
+        // 4. 사용자에게 반환할 메시지 생성
+        return "주문이 취소되었습니다.";
     }
 }
