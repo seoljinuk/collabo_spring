@@ -5,6 +5,10 @@ import com.coffee.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -12,7 +16,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -22,12 +25,12 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    @GetMapping("/list") // 상품 목록을 List 컬렉션으로 반환해 줍니다.
-    public List<Product> list() {
-        List<Product> products = this.productService.getProductList();
-
-        return products;
-    }
+//    @GetMapping("/list") // 상품 목록을 List 컬렉션으로 반환해 줍니다.
+//    public List<Product> list() {
+//        List<Product> products = this.productService.getProductList();
+//
+//        return products;
+//    }
 
     // 클라이언트가 특정 상품 id에 대하여 "삭제" 요청을 하였습니다.
     // @PathVariable는 URL의 경로 변수를 메소드의 매개 변수로 값을 전달해 줍니다.
@@ -162,5 +165,22 @@ public class ProductController {
         }else{ // 200 ok 응답
             return ResponseEntity.ok(product) ;
         }
+    }
+
+    @GetMapping("/list") // 페이징 관련 파라미터를 사용하여 상품 목록을 조회합니다.
+    public ResponseEntity<Page<Product>> listProducts(
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "6") int pageSize
+    ){
+        System.out.println("pageNumber : " + pageNumber + ", pageSize : " + pageSize );
+
+        // 현재 페이지는 pageNumber이고, 페이지당 보여줄 갯수 pageSize를 사용하여 Pageable 페이지를 구합니다.
+        // 상품 번호가 큰 것부터 정렬합니다.
+        Sort mysort = Sort.by(Sort.Direction.DESC, "id");
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, mysort);
+
+        Page<Product> productPage = productService.listProducts(pageable) ;
+
+        return ResponseEntity.ok(productPage) ;
     }
 }

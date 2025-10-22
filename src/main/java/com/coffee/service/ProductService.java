@@ -4,6 +4,8 @@ import com.coffee.entity.Product;
 import com.coffee.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -12,7 +14,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
-import java.util.List;
 import java.util.Optional;
 
 @Service // 상품에 대한 여러 가지 로직 정보를 처리해주는 서비스 클래스입니다.
@@ -20,9 +21,9 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public List<Product> getProductList() {
-        return this.productRepository.findProductByOrderByIdDesc();
-    }
+//    public List<Product> getProductList() {
+//        return this.productRepository.findProductByOrderByIdDesc();
+//    }
 
     public boolean deleteProduct(Long id) {
         // existsById() 메소드와 deleteById() 메소드는 CrudRepository에 포함되어 있습니다.
@@ -136,5 +137,9 @@ public class ProductService {
 
     public void save(Product product) {
         productRepository.save(product);
+    }
+
+    public Page<Product> listProducts(Pageable pageable) {
+        return this.productRepository.findAll(pageable);
     }
 }
