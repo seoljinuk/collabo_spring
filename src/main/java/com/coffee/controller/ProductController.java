@@ -15,6 +15,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -204,5 +205,10 @@ public class ProductController {
 
         // Http 응답 코드 200과 함께 상품 정보를 json 형태로 반환해 줍니다.
         return ResponseEntity.ok(products) ;
+    }
+
+    @GetMapping("") // 홈 페이지에 보여줄 큰 이미지들에 대한 정보를 읽어 옵니다.
+    public List<Product> getBigsizeProducts(@RequestParam(required = false) String filter){
+        return productService.getProductsByFilter(filter) ;
     }
 }

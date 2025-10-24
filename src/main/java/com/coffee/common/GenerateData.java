@@ -5,34 +5,27 @@ import com.coffee.entity.Product;
 
 import java.io.File;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
-// 테스트 용도를 위하여 '회원', '상품' 등의 임시 데이터를 생성하기 위한 자바 클래스
 public class GenerateData {
-    // 주의) SpringBoot가 아닌 일반 Test 모드에서는 @Value를 사용할 수 없습니다.
-    private final String imageFolder = "c:\\shop\\images" ;
 
-    // 특정 폴더 내에 들어 있는 모든 이미지 파일의 이름을 List 컬렉션으로 반환해 줍니다.
+    private final String imageFolder = "c:\\shop\\images";
+    private final Random random = new Random();
+
+    // 이미지 폴더 내 파일명 가져오기
     public List<String> getImageFileNames() {
-        // File : 파일이나 폴더를 객체 형태로 다루고자 할때 사용하는 클래스
         File folder = new File(imageFolder);
-        List<String> imageFiles = new ArrayList<>() ; // 이미지 이름들을 저장할 컬렉션
+        List<String> imageFiles = new ArrayList<>();
 
-        // exists()는 해당 객체가 실제로 존재하면 true
-        // isDirectory()는 해당 객체가 폴더이면 true
-        if(!folder.exists() || !folder.isDirectory()){
+        if (!folder.exists() || !folder.isDirectory()) {
             System.out.println(imageFolder + " 폴더가 존재하지 않습니다");
-            return imageFiles ;
+            return imageFiles;
         }
 
-        // 추가 코딩 예정
-        String[] imageExtensions = {".jpg", ".jpeg", ".png"}; // 관심 있는 파일의 확장자
-        File[] fileList = folder.listFiles(); // 파일 객체 목록
+        String[] imageExtensions = {".jpg", ".jpeg", ".png"};
+        File[] fileList = folder.listFiles();
 
-        // 모든 파일의 이름을 소문자로 변경 후 확장자와 비교후 조건에 부합하면 컬렉션에 추가합니다.
         if (fileList != null) {
             for (File file : fileList) {
                 if (file.isFile() && Arrays.stream(imageExtensions)
@@ -41,50 +34,129 @@ public class GenerateData {
                 }
             }
         }
-
-        return imageFiles ;
+        return imageFiles;
     }
 
-    public Product createProduct(int index, String imageName) {
+    // 상품 생성
+    public Product createProduct(String imageName) {
         Product product = new Product();
 
-        switch (index % 3) {
-            case 0:
-                product.setCategory(Category.BREAD);
-                break;
-            case 1:
-                product.setCategory(Category.BEVERAGE);
-                break;
-            case 2:
-                product.setCategory(Category.CAKE);
-                break;
+        String lower = imageName.toLowerCase();
+
+        // 카테고리 결정
+        if (lower.contains("americano") || lower.contains("latte") || lower.contains("milk") ||
+                lower.contains("coffee") || lower.contains("cappuccino") || lower.contains("juice") ||
+                lower.contains("wine")) {
+            product.setCategory(Category.BEVERAGE);
+        } else if (lower.contains("croissant") || lower.contains("ciabatta") ||
+                lower.contains("brioche") || lower.contains("baguette") || lower.contains("scone") ||
+                lower.contains("pretzel") || lower.contains("muffin")) {
+            product.setCategory(Category.BREAD);
+        } else if (lower.contains("cake") || lower.contains("macaron") ||
+                lower.contains("pie") || lower.contains("tart")) {
+            product.setCategory(Category.CAKE);
+        } else {
+            product.setCategory(Category.ALL);
         }
 
-        String productName = getProductName();
-        product.setName(productName);
-        String description = getDescriptionData(productName);
-        product.setDescription(description);
+        // 이름 추출
+        String name = formatNameFromImage(imageName);
+        product.setName(name);
+
+        // 설명 자동 생성 (랜덤 맛/형용사 조합)
+        String[] tastes = {"달콤하고", "고소하고", "부드럽고", "상큼하고", "진한", "담백하고", "촉촉한", "향긋한"};
+        String[] features = {"풍미가 느껴져요", "맛이 나요", "향이 가득해요", "식감이 좋아요", "기분이 좋아져요"};
+        String desc = String.format("%s는 %s %s.", name,
+                tastes[random.nextInt(tastes.length)],
+                features[random.nextInt(features.length)]);
+        product.setDescription(desc);
+
+        // 이미지 파일명
         product.setImage(imageName);
-        product.setPrice(1000 * getRandomDataRange(1, 10));
-        product.setStock(111 * getRandomDataRange(1, 9));
-        LocalDate sysdate = LocalDate.now();
-        product.setInputdate(sysdate.minusDays(index));
+
+        // 100원 단위 가격 설정
+        int price = switch (product.getCategory()) {
+            case BEVERAGE -> getPriceRangeHundreds(3500, 6000);
+            case BREAD -> getPriceRangeHundreds(2000, 5000);
+            case CAKE -> getPriceRangeHundreds(5000, 9000);
+            default -> 3000;
+        };
+        product.setPrice(price);
+
+        // 재고 (10 단위)
+        product.setStock(getRandomRangeTens(50, 200));
+
+        // 등록일
+        product.setInputdate(LocalDate.now().minusDays(getRandomRange(1, 30)));
+
         return product;
     }
 
-    private int getRandomDataRange(int start, int end) {
-        // start <= somedata <= end
-        return new Random().nextInt(end) + start;
+    // 100원 단위 가격
+    private int getPriceRangeHundreds(int min, int max) {
+        int raw = getRandomRange(min, max);
+        return (raw / 100) * 100; // 100원 단위로 절삭
     }
 
-    private String getDescriptionData(String name) {
-        String[] description = {"엄청 달아요.", "맛있어요.", "맛없어요.", "떫어요.", "엄청 떫어요.", "아주 떫어요.", "새콤해요.", "아주 상큼해요.", "아주 달아요."};
-        return name + "는(은) " + description[new Random().nextInt(description.length)];
+    // 10 단위 재고
+    private int getRandomRangeTens(int min, int max) {
+        int raw = getRandomRange(min, max);
+        return (raw / 10) * 10; // 10단위로 절삭
     }
 
-    private String getProductName() {
-        String[] fruits = {"아메리카노", "바닐라라떼", "우유", "에스프레소", "크로아상", "치아바타", "당근 케이크"};
-        return fruits[new Random().nextInt(fruits.length)];
+    private int getRandomRange(int min, int max) {
+        return random.nextInt(max - min + 1) + min;
     }
 
+    // 파일명 → 상품명
+    private String formatNameFromImage(String fileName) {
+        String name = fileName.substring(0, fileName.lastIndexOf("."));
+        name = name.replaceAll("_", " ").replaceAll("\\d+", "").trim();
+
+        Map<String, String> dictionary = Map.ofEntries(
+                // ☕ 음료류
+                Map.entry("americano", "아메리카노"),
+                Map.entry("latte", "바닐라라떼"),
+                Map.entry("milk", "우유"),
+                Map.entry("coffee", "커피"),
+                Map.entry("cappuccino", "카푸치노"),
+                Map.entry("juice", "주스"),
+                Map.entry("wine", "와인"),
+
+                // 🍞 빵류
+                Map.entry("croissant", "크로아상"),
+                Map.entry("ciabatta", "치아바타"),
+                Map.entry("brioche", "브리오슈"),
+                Map.entry("baguette", "바게트"),
+                Map.entry("pretzel", "프레첼"),
+                Map.entry("scone", "스콘"),
+                Map.entry("focaccia", "포카치아"),
+                Map.entry("donut", "도넛"),
+                Map.entry("muffin", "머핀"),
+                Map.entry("roll", "버터롤"),
+                Map.entry("bread", "식빵"),
+                Map.entry("bun", "모닝빵"),
+                Map.entry("pie", "애플파이"),
+                Map.entry("tart", "타르트"),
+
+                // 🍰 디저트류
+                Map.entry("cake", "케이크"),
+                Map.entry("macaron", "마카롱")
+        );
+
+        for (String key : dictionary.keySet()) {
+            if (name.toLowerCase().contains(key)) {
+                return dictionary.get(key);
+            }
+        }
+
+        return name;
+    }
+
+    // 전체 이미지로 상품 생성
+    public List<Product> createAllProducts() {
+        return getImageFileNames().stream()
+                .map(this::createProduct)
+                .collect(Collectors.toList());
+    }
 }

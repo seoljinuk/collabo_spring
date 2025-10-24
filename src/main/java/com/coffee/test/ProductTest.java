@@ -26,7 +26,8 @@ public class ProductTest {
 
         // 반복문을 사용하여 데이터 베이스에 각각 추가합니다.
         for (int i = 0; i < imageNameList.size(); i++) {
-            Product bean = gendata.createProduct(i, imageNameList.get(i));
+//            Product bean = gendata.createProduct(i, imageNameList.get(i));
+            Product bean = gendata.createProduct(imageNameList.get(i));
             //System.out.println(bean);
             this.productRepository.save(bean);
         }

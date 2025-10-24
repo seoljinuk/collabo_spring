@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 @Service // 상품에 대한 여러 가지 로직 정보를 처리해주는 서비스 클래스입니다.
@@ -181,5 +182,12 @@ public class ProductService {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
 
         return this.productRepository.findAll(spec, pageable) ;
+    }
+
+    public List<Product> getProductsByFilter(String filter) {
+        if(filter != null && !filter.isEmpty()){
+            return productRepository.findByImageContaining(filter);
+        }
+        return productRepository.findAll();
     }
 }
