@@ -20,8 +20,21 @@ import java.util.Arrays;
 public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+        /* 다음 항목은 리액트 빌드 결과를 스프링에 넣을 때 첨부해줘야 하는 코드입니다.
+        "/index.html",        // React 메인 파일
+                "/static/**",         // 정적 파일(css, js 등)
+                "/assets/**",         // 빌드 결과 폴더에 따라 추가
+                "/favicon.ico",
+                "/manifest.json"
+
+        * */
         String[] permitAllowed = {"/", "/member/signup", "/member/login", "/product",
-                "/product/list", "/cart/**", "/order/**", "/fruit/**", "/element/**", "/images/**"} ;
+                "/product/list", "/cart/**", "/order/**", "/fruit/**", "/element/**", "/images/**",
+                "/index.html",        // React 메인 파일
+                "/static/**",         // 정적 파일(css, js 등)
+                "/assets/**",         // 빌드 결과 폴더에 따라 추가
+                "/favicon.ico",
+                "/manifest.json" } ;
 
         String[] neededAuthenticated = {"/product/detail/**"} ;
 
